@@ -1,0 +1,6 @@
+{
+  "emergency_number": "112",
+  "crisis_lines": ["ALO 183 Sosyal Destek", "112 Acil"],
+  "public_health": ["MHRS aile hekimi", "Toplum Sağlığı Merkezi"],
+  "private_options": ["Özel psikolojik danışman dizini (placeholder)"]
+}

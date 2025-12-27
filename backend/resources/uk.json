@@ -1,0 +1,6 @@
+{
+  "emergency_number": "999",
+  "crisis_lines": ["Samaritans 116 123"],
+  "public_health": ["NHS 111 online", "GP appointment"],
+  "private_options": ["Private therapy directories (placeholder)"]
+}

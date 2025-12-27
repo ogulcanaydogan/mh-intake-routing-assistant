@@ -1,0 +1,25 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_USER: assistant
+      POSTGRES_DB: mhassistant
+    ports:
+      - "5432:5432"
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg2://assistant:example@db:5432/mhassistant
+      MOCK_LLM: "true"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mental Health Intake + Routing Assistant</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 1rem; }
+    #chat { border: 1px solid #ccc; padding: 1rem; height: 400px; overflow-y: scroll; }
+    .message { margin: 0.5rem 0; }
+    .user { font-weight: bold; }
+    .assistant { color: #0a5; }
+  </style>
+</head>
+<body>
+  <h1>Mental Health Intake + Routing Assistant</h1>
+  <p><strong>Disclaimer:</strong> Not a medical professional. Not a diagnosis. If you are in immediate danger call local emergency services.</p>
+  <div>
+    <label>Email (optional): <input id="email" type="email" placeholder="you@example.com"></label>
+    <label>Language: <select id="language"><option value="TR">Türkçe</option><option value="EN">English</option></select></label>
+    <label>Country: <select id="country"><option value="TR">Türkiye</option><option value="UK">United Kingdom</option><option value="OTHER">Other</option></select></label>
+    <label>Age band: <select id="age"><option value="18+">18+</option><option value="under 18">Under 18</option></select></label>
+    <label><input type="checkbox" id="consent"> I consent to data processing for routing assistance.</label>
+    <button id="start">Start session</button>
+  </div>
+  <div id="chat"></div>
+  <div>
+    <input id="input" type="text" placeholder="Type your message" style="width:70%">
+    <button id="send">Send</button>
+  </div>
+  <script>
+    let sessionId = null;
+    const chat = document.getElementById('chat');
+    function addMessage(text, cls){
+      const div = document.createElement('div');
+      div.className = 'message ' + cls;
+      div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    document.getElementById('start').onclick = async () => {
+      const payload = {
+        email: document.getElementById('email').value || null,
+        language: document.getElementById('language').value,
+        country: document.getElementById('country').value,
+        age_band: document.getElementById('age').value,
+        consent: document.getElementById('consent').checked
+      };
+      const res = await fetch('http://localhost:8000/session/start', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      sessionId = data.session_id;
+      addMessage('Session started. ' + data.disclaimer, 'assistant');
+    };
+
+    document.getElementById('send').onclick = async () => {
+      if(!sessionId){ addMessage('Start a session first.', 'assistant'); return; }
+      const text = document.getElementById('input').value;
+      document.getElementById('input').value = '';
+      addMessage(text, 'user');
+      const res = await fetch('http://localhost:8000/message', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({session_id: sessionId, message: text})
+      });
+      const data = await res.json();
+      addMessage(data.user_message, 'assistant');
+      if(data.intent === 'crisis'){
+        addMessage('Crisis override activated. Please use the listed contacts.', 'assistant');
+      }
+    };
+  </script>
+</body>
+</html>

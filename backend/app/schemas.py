@@ -46,6 +46,7 @@ class RouteResponse(BaseModel):
     recommendation: str
     scores: dict
     crisis: bool = False
+    explanation: dict = Field(default_factory=dict)
 
 
 class ResourceEntry(BaseModel):

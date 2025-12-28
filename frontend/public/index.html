@@ -3,39 +3,343 @@
 <head>
   <meta charset="UTF-8">
   <title>Mental Health Intake + Routing Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 1rem; }
-    #chat { border: 1px solid #ccc; padding: 1rem; height: 400px; overflow-y: scroll; }
-    .message { margin: 0.5rem 0; }
-    .user { font-weight: bold; }
-    .assistant { color: #0a5; }
+    :root {
+      --bg: #0e1726;
+      --panel: #0f1f3a;
+      --border: #1f3555;
+      --accent: #4ade80;
+      --text: #e6edf7;
+      --muted: #9fb3c8;
+      --danger: #fb7185;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 10% 20%, #20345a, #0a1220 50%), #0a1220;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+
+    .app {
+      width: min(1100px, 95vw);
+      background: rgba(15, 31, 58, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.45);
+      overflow: hidden;
+    }
+
+    header {
+      padding: 24px;
+      background: linear-gradient(90deg, rgba(74,222,128,0.08), rgba(79,70,229,0.08));
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(74,222,128,0.12);
+      color: #bbf7d0;
+      border: 1px solid rgba(74,222,128,0.35);
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .disclaimer {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      padding: 24px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 16px;
+      color: #dbeafe;
+      letter-spacing: -0.01em;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    input, select {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    input::placeholder { color: #8aa0b7; }
+
+    .consent-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    button {
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    #start {
+      background: linear-gradient(120deg, #22c55e, #16a34a);
+      color: #042f14;
+      box-shadow: 0 12px 30px rgba(34,197,94,0.25);
+    }
+
+    #start:hover { transform: translateY(-1px); }
+
+    #send {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    #send:hover { border-color: #3b82f6; }
+
+    .chat-card {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      height: 640px;
+    }
+
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    #chat {
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .bubble {
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .assistant .bubble { border-color: rgba(74,222,128,0.4); }
+    .assistant .avatar { background: rgba(74,222,128,0.14); color: #bbf7d0; }
+    .user { flex-direction: row-reverse; }
+    .user .bubble { border-color: rgba(59,130,246,0.35); background: rgba(59,130,246,0.08); }
+    .user .avatar { background: rgba(59,130,246,0.15); color: #bfdbfe; }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px 16px;
+      border-top: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+
+    #input { flex: 1; }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status.active { color: #bbf7d0; border-color: rgba(74,222,128,0.4); background: rgba(74,222,128,0.08); }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    @media (max-width: 960px) {
+      .content { grid-template-columns: 1fr; }
+      .chat-card { height: 580px; }
+      header { flex-direction: column; align-items: flex-start; }
+    }
   </style>
 </head>
 <body>
-  <h1>Mental Health Intake + Routing Assistant</h1>
-  <p><strong>Disclaimer:</strong> Not a medical professional. Not a diagnosis. If you are in immediate danger call local emergency services.</p>
-  <div>
-    <label>Email (optional): <input id="email" type="email" placeholder="you@example.com"></label>
-    <label>Language: <select id="language"><option value="TR">Türkçe</option><option value="EN">English</option></select></label>
-    <label>Country: <select id="country"><option value="TR">Türkiye</option><option value="UK">United Kingdom</option><option value="OTHER">Other</option></select></label>
-    <label>Age band: <select id="age"><option value="18+">18+</option><option value="under 18">Under 18</option></select></label>
-    <label><input type="checkbox" id="consent"> I consent to data processing for routing assistance.</label>
-    <button id="start">Start session</button>
+  <div class="app">
+    <header>
+      <div>
+        <div class="badge">Safety-first demo</div>
+        <h1>Mental Health Intake + Routing Assistant</h1>
+        <p class="disclaimer"><strong>Disclaimer:</strong> Not a medical professional. Not a diagnosis. If you are in immediate danger call local emergency services.</p>
+      </div>
+      <div class="status" id="session-status">No session active</div>
+    </header>
+
+    <div class="content">
+      <section class="card">
+        <h2>Session details</h2>
+        <label>Email (optional)
+          <input id="email" type="email" placeholder="you@example.com">
+        </label>
+        <label>Language
+          <select id="language">
+            <option value="TR">Türkçe</option>
+            <option value="EN">English</option>
+          </select>
+        </label>
+        <label>Country
+          <select id="country">
+            <option value="TR">Türkiye</option>
+            <option value="UK">United Kingdom</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </label>
+        <label>Age band
+          <select id="age">
+            <option value="18+">18+</option>
+            <option value="under 18">Under 18</option>
+          </select>
+        </label>
+        <div class="consent-row">
+          <input type="checkbox" id="consent">
+          <span>I consent to data processing for routing assistance.</span>
+        </div>
+        <button id="start">Start session</button>
+        <div class="hint">The session will include a disclaimer on every response and keeps crisis detection deterministic.</div>
+      </section>
+
+      <section class="card chat-card">
+        <div class="chat-header">
+          <span>Conversation</span>
+          <span class="hint" id="session-id">Awaiting session start</span>
+        </div>
+        <div id="chat"></div>
+        <div class="input-row">
+          <input id="input" type="text" placeholder="Type your message">
+          <button id="send">Send</button>
+        </div>
+      </section>
+    </div>
   </div>
-  <div id="chat"></div>
-  <div>
-    <input id="input" type="text" placeholder="Type your message" style="width:70%">
-    <button id="send">Send</button>
-  </div>
+
   <script>
     let sessionId = null;
     const chat = document.getElementById('chat');
+    const sessionStatus = document.getElementById('session-status');
+    const sessionLabel = document.getElementById('session-id');
+
     function addMessage(text, cls){
-      const div = document.createElement('div');
-      div.className = 'message ' + cls;
-      div.textContent = text;
-      chat.appendChild(div);
+      const row = document.createElement('div');
+      row.className = 'message ' + cls;
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.textContent = cls === 'user' ? 'You' : 'AI';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
+
+      row.appendChild(avatar);
+      row.appendChild(bubble);
+      chat.appendChild(row);
       chat.scrollTop = chat.scrollHeight;
+    }
+
+    function setSessionActive(id){
+      sessionStatus.textContent = 'Session active';
+      sessionStatus.classList.add('active');
+      sessionLabel.textContent = 'Session ID: ' + id;
+    }
+
+    function setSessionInactive(){
+      sessionStatus.textContent = 'No session active';
+      sessionStatus.classList.remove('active');
+      sessionLabel.textContent = 'Awaiting session start';
     }
 
     document.getElementById('start').onclick = async () => {
@@ -46,32 +350,53 @@
         age_band: document.getElementById('age').value,
         consent: document.getElementById('consent').checked
       };
-      const res = await fetch('http://localhost:8000/session/start', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      sessionId = data.session_id;
-      addMessage('Session started. ' + data.disclaimer, 'assistant');
+      try {
+        const res = await fetch('http://localhost:8000/session/start', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        sessionId = data.session_id;
+        addMessage('Session started. ' + data.disclaimer, 'assistant');
+        setSessionActive(sessionId);
+      } catch (err) {
+        addMessage('Unable to start session. Please ensure the backend is running.', 'assistant');
+        setSessionInactive();
+      }
     };
 
     document.getElementById('send').onclick = async () => {
       if(!sessionId){ addMessage('Start a session first.', 'assistant'); return; }
       const text = document.getElementById('input').value;
+      if(!text.trim()) return;
       document.getElementById('input').value = '';
       addMessage(text, 'user');
-      const res = await fetch('http://localhost:8000/message', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({session_id: sessionId, message: text})
-      });
-      const data = await res.json();
-      addMessage(data.user_message, 'assistant');
-      if(data.intent === 'crisis'){
-        addMessage('Crisis override activated. Please use the listed contacts.', 'assistant');
+      try {
+        const res = await fetch('http://localhost:8000/message', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({session_id: sessionId, message: text})
+        });
+        const data = await res.json();
+        addMessage(data.user_message, 'assistant');
+        if(data.intent === 'crisis'){
+          addMessage('Crisis override activated. Please use the listed contacts.', 'assistant');
+        }
+      } catch (err) {
+        addMessage('Message failed to send. Check your connection to the backend.', 'assistant');
       }
     };
+
+    document.getElementById('input').addEventListener('keydown', (event) => {
+      if(event.key === 'Enter'){
+        event.preventDefault();
+        document.getElementById('send').click();
+      }
+    });
+
+    // Welcome message
+    addMessage('Welcome! Start a session to begin intake. Every response includes a safety disclaimer.', 'assistant');
   </script>
 </body>
 </html>

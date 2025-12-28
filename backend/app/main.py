@@ -139,6 +139,7 @@ def compute_route(session_id: str, db: Session = Depends(get_db)):
         bucket=result["bucket"],
         recommendation=result["recommendation"],
         scores=result["scores"],
+        explanation=result.get("explanation", {}),
     )
 
 
